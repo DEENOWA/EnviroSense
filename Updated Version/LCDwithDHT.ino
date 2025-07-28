@@ -1,5 +1,4 @@
 #include <LiquidCrystal.h>
-
 #include <DHT.h>
 
 #define DHT11PIN 7
@@ -12,30 +11,75 @@ void setup() {
   lcd.begin(16, 2);
   dht.begin();
   lcd.clear();
-  // put your setup code here, to run once:
-
+  Serial.println("EnviroSense: System ready");
 }
 
 void loop() {
-  delay(2000);
 
   float humid = dht.readHumidity();
-  float temp = dht.readTemperature();
+  float tempC = dht.readTemperature(false);
+  float tempF = dht.readTemperature(true);
+  float hic = dht.computeHeatIndex(tempC, humid, false);
+  float hif = dht.computeHeatIndex(tempF, humid, true);
+
+
+  if (isnan(humid) || isnan(tempC) || isnan(tempF)) {
+    Serial.println("Failed to read from DHT11 sensor!");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Sensor Error");
+    delay(2000);
+    return;
+  }
+
 
   Serial.print("Humidity: ");
-  Serial.println(humid);
-  Serial.print("Temprature: ");
-  Serial.println(temp);
+  Serial.print(humid);
+  Serial.println(" %");
+  Serial.print("Temperature: ");
+  Serial.print(tempC);
+  Serial.print(" deg.C  ");
+  Serial.print(tempF);
+  Serial.println(" deg.F");
+  Serial.print("Heat Index: ");
+  Serial.print(hic);
+  Serial.print(" deg.C  ");
+  Serial.print(hif);
+  Serial.println(" deg.F");
 
+ 
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Hum: ");
+  lcd.print(humid);
+  lcd.print("%");
+  lcd.setCursor(0, 1);
+  lcd.print("Temp: ");
+  lcd.print(tempC);
+  lcd.print("C");
+  delay(4000);
 
-  lcd.setCursor(0,0);
-  lcd.print("Humidity: ");
-  lcd.println(humid);
-  lcd.setCursor(0,1);
-  lcd.print("Temprature: ");
-  lcd.println(temp);
+  
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  String tempFText = "Temp: " + String(tempF, 1) + " deg.F";
+  lcd.print(tempFText);
+  for (int i = 0; i <= tempFText.length() - 16; i++) {
+    lcd.scrollDisplayLeft();
+    delay(300);
+  }
+  delay(2000); 
 
+ 
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  String hiText = "HI: " + String(hic, 1) + "C " + String(hif, 1) + "F";
+  lcd.print(hiText);
+  for (int i = 0; i <= hiText.length() - 16; i++) {
+    lcd.scrollDisplayLeft();
+    delay(300);
+  }
+  delay(2000);
 
-  // put your main code here, to run repeatedly:
-
+  delay(1000); 
 }
